@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    <!--
+        Customize the content security policy in the meta tag below as needed. Add 'unsafe-inline' to default-src to enable inline JavaScript.
+        For details, see http://go.microsoft.com/fwlink/?LinkID=617521
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
+    <title>Daily210HardJavaScript</title>
+
+    <!-- Daily210HardJavaScript references -->
+    <link href="css/index.css" rel="stylesheet" />
+</head>
+<body>
+    
+</body>
+
+<script>
+
+    var challenges = [
+        'SRLLRLRLSSS',
+    'SRLLRLRLSSSSSSRRRLRLR',
+    'SRLLRLRLSSSSSSRRRLRLRSSLSLS',
+    'LSRS'
+    ];
+
+    var custom = m.prop('SLLLRLSLSLSRLSLLLLS');
+
+    var cmd = '';
+    var i = 0;
+    var imax = 0;
+    var cycles = 1;
+    var cyclemax = 20;
+    var looped = 0;
+
+    var pos = { x: 0, y: 0 };
+
+    var step = 5; // Distance per step.
+    var directions = [
+    function (pos) { return { x: pos.x - step, y: pos.y }; }, // N
+    function (pos) { return { x: pos.x, y: pos.y + step }; }, // E
+    function (pos) { return { x: pos.x + step, y: pos.y }; }, // S
+    function (pos) { return { x: pos.x, y: pos.y - step }; }  // W
+    ]
+
+    var dir = 0;
+
+    var centerx = Math.floor(window.innerWidth/2);
+    var centery = Math.floor(window.innerHeight / 2);
+
+    var trail = [];
+
+    function go() {
+
+        var c = cmd[i];
+
+        i++;
+
+        if (i == cmd.length) {
+            i = 0;
+            cycles++;
+            if (cycles == cyclemax) return;
+        }
+
+        switch (c) {
+            case 'S': pos = directions[dir](pos); break;
+            case 'R': dir = dir == 3 ? dir = 0 : dir + 1; break;
+            case 'L': dir = dir == 0 ? dir = 3 : dir - 1; break;
+        }
+
+        if (looped == 0 && pos.x == 0 && pos.y == 0 && dir == 0) looped = cycles;
+
+        var x = centerx + pos.x + "px";
+        var y = centery + pos.y + "px";
+
+        trail.push({ x: x, y: y });
+
+        m.render(document.body, [
+      m(".robot", { style: { top: y, left: x } }),
+      trail.map(function (t) {
+          return m(".trail", { style: { top: t.y, left: t.x } });
+      }),
+      m(".cmds", [
+          cmd.map(function (cc, idx) { return m("span" + (idx == i ? ".current" : ""), cmd[idx]) }),
+          m("span.cycles", " -- " + cycles + " cycles")
+      ]),
+      looped > 0 ? m("h2", "Loop detected! " + looped + " cycles(s) to complete loop") : ''
+        ]);
+        window.requestAnimationFrame(go);
+    }
+
+    // Menu at the beginning.
+    m.render(document.body, [
+    m("h1", "Pick challenge to run:"),
+    challenges.map(function (c) {
+        return m("button", { onclick: start.bind(c) }, c);
+    }),
+    m("h3", "Custom: "),
+    m("input[type=text]", { value: custom(), onchange: m.withAttr("value", custom) }),
+    m("button", { onclick: function () { start.bind(custom())() } }, "Run Custom")
+    ]);
+
+    function start() { cmd = this.split(''); go(); }
+
+</script>
+</html>
